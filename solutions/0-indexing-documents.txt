@@ -1,0 +1,17 @@
+# Create a new index called movies
+
+curl -XPUT localhost:9200/movies
+
+# Index a new document
+
+curl -XPUT -H "Content-Type: application/json" localhost:9200/movies/_doc/1 -d '
+{
+  "id": "1",
+  "title": "Spider-Man: Homecoming",
+  "genres": [ "comedy", "action" ]
+}'
+
+# Delete a document
+
+curl -XDelete localhost:9200/movies/doc/1
+

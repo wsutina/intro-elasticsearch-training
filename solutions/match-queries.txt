@@ -1,0 +1,40 @@
+# Find movies with 'young' AND  'man' in the overview
+# Hint: use `operator` field
+
+GET movies/_search
+{
+  "query": {
+    "match": {
+      "overview": "young man"
+    }
+  }
+}
+
+# Second take
+
+GET movies/_search
+{
+  "query": {
+    "match": {
+      "overview": {
+        "query":"young man",
+        "operator": "and"
+      }
+    }
+  }
+}
+
+# Add fuzziness so 'young mam' returns the same results
+GET movies/_search
+{
+  "query": {
+    "match": {
+      "overview": {
+        "query":"young mam",
+        "operator": "and",
+        "fuzziness": 1
+      }
+    }
+  }
+}
+

@@ -1,0 +1,65 @@
+# Find movies that contain 'comedy' and do NOT 'action' in the *genres*
+
+GET movies/_search
+{
+  "query": {
+    "bool": {
+      "filter": {
+        "term": {
+          "genres": "comedy"
+        }
+      },
+      "must_not": {
+        "term": {
+          "genres": "action"
+        }
+      }
+    }
+  }
+}
+
+# To the previous query, add a clause to filter AND rank by the relevance of 'life' in the *overview* field
+HINT: Look a ` must`
+
+GET movies/_search
+{
+  "query": {
+    "bool": {
+      "filter": {
+        "term": {
+          "genres": "comedy"
+        }
+      },
+      "must_not": {
+        "term": {
+          "genres": "action"
+        }
+      },
+      "must": {
+        "match": {
+          "overview": "life"
+        }
+      }
+    }
+  }
+}
+
+# Return ALL the 'comedy' movies and boost those that are about 'christmas'
+
+GET movies/_search
+{
+  "query": {
+    "bool": {
+      "filter": {
+        "term": {
+          "genres": "comedy"
+        }
+      },
+      "should": {
+        "match": {
+          "overview": "christmas"
+        }
+      }
+    }
+  }
+}

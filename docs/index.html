@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Introduction to Elasticsearch</title>
+    <meta charset="utf-8">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Helvetica);
+      @import url(https://fonts.googleapis.com/css?family=Roboto:400light,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Roboto+Mono);
+
+      body {
+        font-family: 'Roboto';
+      }
+      h1, h2, h3 {
+        font-family: 'Helvetica';
+        font-weight: normal;
+      }
+      .remark-code, .remark-inline-code {
+        font-family: 'Roboto Mono';
+        font-size: small;
+      }
+      a, a > code {
+        color: rgb(249, 38, 114);
+        text-decoration: none;
+      }
+      code {
+        background: #e7e8e2;
+        border-radius: 5px;
+      }
+
+      /* Two-column layout */
+      .left-column {
+        width: 48%;
+        float: left;
+      }
+      .right-column {
+        width: 48%;
+        float: right;
+      }
+
+      /* Footnote */
+      .footnote {
+        position: absolute;
+        bottom: 2em;
+        background-image: url('media/elastic-logo.png');
+        background-repeat: no-repeat;
+        padding-left: 30px;  /* width of the image plus a little extra padding */
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, middle
+
+# Introduction to Elasticsearch
+
+Sutina Wipawiwat
+---
+
+# Agenda
+
+1. Introduction
+2. Creating indices, indexing and deleting documents
+3. Mappings
+4. Range queries
+5. Term queries
+6. Analyzers
+7. Match queries
+8. Phrase match queries
+7. Bool queries (Query composition)
+
+---
+
+# Setup
+
+Clone the repository and follow the instructions for setting up the environment
+
+```
+https://github.com/wsutina/intro-elasticsearch-training
+```
+
+
+Join **#elasticsearch-intro**
+
+---
+
+class: center, middle, inverse
+
+# Introduction
+
+---
+
+class: center, middle, inverse
+
+# Let's get to it!
+
+---
+
+class: center, middle
+
+![kibana logo](media/kibana-logo.png)
+
+*Should be running at [localhost:5601](http://localhost:5601)
+
+---
+
+# Getting started
+
+Create an index called movies
+
+```
+  PUT movies
+```
+
+Index our first document
+
+```
+PUT movies/_doc/1
+{
+  "id": "1",
+  "title": "Spider-Man: Homecoming",
+  "genres": [ "comedy", "action" ]
+}
+```
+
+Searching
+
+```
+GET movies/_search
+{
+  "query": {
+    "match": {
+      "title": "spider man"
+    }
+  }
+}
+```
+
+---
+
+# Getting started
+
+Delete a document
+
+```
+DELETE movies/_doc/1
+```
+
+Delete the index
+
+```
+DELETE movies
+```
+
+---
+
+# Mappings
+
+Define how a document and it fields are indexed
+
+  - Which string should be tokenized or treated as keywords
+  - Field data types (e.g number, dates, geolocations)
+  - How text field should be analyzed
+  - etc
+
+### Dynamic mappings
+
+  - Allows for indexing documents without previously defining the mappings
+  - New fields will be added by indexing new documents
+  - It can be disabled
+
+.footnote[[Mappings](https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html)]
+
+---
+
+# Mappings
+
+Create a mapping for our example movie document
+
+```
+PUT movies
+{
+  "mappings": {
+    "properties": {
+      "id": {
+        "type": "keyword"
+      },
+      "title": {
+        "type": "text",
+        "analyzer": "english"
+      },
+      "genres": {
+        "type": "keyword"
+      }
+    }
+  }
+}
+```
+
+Now run `./auto/index-movies.sh` and see the dynamic mapping
+
+---
+
+`GET movies/_mapping`
+
+.left-column[
+```
+{
+  "movies" : {
+    "mappings" : {
+      "properties" : {
+        "genres" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+        "id" : {
+          "type" : "long"
+        },
+        "overview" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        },
+...
+```
+]
+
+.right-column[
+```
+        "rating" : {
+          "type" : "float"
+        },
+        "release_date" : {
+          "type" : "date"
+        },
+        "title" : {
+          "type" : "text",
+          "fields" : {
+            "keyword" : {
+              "type" : "keyword",
+              "ignore_above" : 256
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+]
+
+---
+
+class: center, middle
+
+# Queries
+
+---
+
+# Range queries
+
+  - Matches documents with values within the specified range
+  - Supports numeric, string, date and ip values (since v6)
+
+  ```
+    GET movies/_search
+    {
+      "query": {
+        "range": {
+          "rating": {
+            "lt": 5
+          }
+        }
+      }
+    }
+  ```
+
+.footnote[[Range query](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html)]
+---
+
+# Range queries (Exercises)
+
+### Find movies with *release_date* between `2016-01-01` and `2016-12-01`
+---
+
+# Term queries
+
+- Matches on the **exact** term
+- A document either matches or not. No score (relevancy) is calculated
+- Commonly used on `keyword` type fields
+- Useful for searching: names, ids, discrete values (e.g movie genres)
+
+Query for documents that contain the word `beer`:
+
+.left-column[
+  ```
+  GET articles/_search
+  {
+    "query": {
+      "term": {
+        "description": "beer"
+      }
+    }
+  }
+  ```
+]
+
+.right-column[
+  ```
+  GET articles/_search
+  {
+    "query": {
+      "terms": {
+        "description": ["beer", "rum"]
+      }
+    }
+  }
+  ```
+]
+
+.footnote[[Term query](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html)]
+
+---
+
+# Term queries (Exercises)
+
+
+### Find movies that contain 'batman' in the *overview*
+### Find movies that contain 'batman' OR 'thor' in the *overview*
+### Now only 'Batman' (note the uppercase), can you guess why no movies are returned?
+
+
+---
+
+# Analyzers
+
+- Specifies how the text will be processed before being added to the inverted index (eg. tokenised, lowercased, stemming, stop word removal, etc)
+- Elasticsearch has several [built-in analyzers](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-analyzers.html)
+- Specified in the mapping
+- Supports custom analysers
+
+You can use the `/_analyze` endpoint to test analyzers
+
+.footnote[[Analyzers](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis.html)]
+
+---
+
+# Analyzers (in Mapping)
+
+```
+PUT /some-index
+{
+  "mappings": {
+    "properties": {
+      "myField": {
+        "type": "text",
+        "analyzer": "whitespace"
+      }
+    }
+  }
+}
+```
+
+---
+
+# Analyzers (Exercises)
+Try the 'standard', 'whitespace'and 'english' analyzers with:
+```
+GET /_analyze
+{
+  "analyzer": "english",
+  "text": "Where is that café?"
+}
+```
+
+Create an analyzer so that the following query returns the sample document
+
+.left-column[
+  Query:
+
+  ```
+  GET analyzer-test/_search
+  {
+    "query": {
+      "match": {
+        "title": {
+          "query": "bobs burgers"
+        }
+      }
+    }
+  }
+  ```
+]
+
+.right-column[
+  Sample document:
+
+  ```
+  PUT analyzer-test/_doc/1
+  {
+    "title": "Bob's Burgers!!"
+  }
+  ```
+]
+
+---
+
+# Match queries
+
+- Accepts text/numeric/date values
+- Analyses the requested value
+- Calculates scores; how relevant is a document for the requested query?
+- Supports fuzziness
+- By default uses the analyzer specified in the mappings
+
+Find the most relevant movies to the "war"
+
+```
+GET movies/_search
+{
+  "query": {
+    "match": {
+      "overview": {
+        "query": "war"
+      }
+    }
+  }
+}
+```
+
+.footnote[[Match queries](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html)]
+---
+
+# Match queries (Exercises)
+
+### Find movies with 'young' AND  'man' in the overview
+Hint: use `operator` field
+
+### Add fuzziness so 'young mam' returns the same results
+---
+
+# Relevance
+
+- **Term frequency:** How often does the term appear in the field
+- **Inverse document frequency:** How often does each term appear in the index (all documents)
+- **Field-length norm:** How long the field is
+- **Percentage of the query terms that match**
+
+
+.footnote[[Relevance](https://www.elastic.co/guide/en/elasticsearch/guide/current/relevance-intro.html)]
+
+---
+
+# Relevance: Term Frequency
+
+.left-column[
+Data:
+```
+DELETE /scoring-test
+
+PUT /scoring-test
+{
+  "settings": {
+    "number_of_shards": 1
+  }
+}
+
+POST /scoring-test/_bulk
+{"index":{}}
+{ "title": "Apples Apples Apples Apples"}
+{"index":{}}
+{ "title": "Apples Apples Apples Bananas"}
+{"index":{}}
+{ "title": "Apples Apples Bananas Bananas"}
+{"index":{}}
+{ "title": "Apples Bananas Bananas Bananas"}
+{"index":{}}
+{ "title": "Bananas Bananas Bananas Bananas"}
+{"index":{}}
+{ "title": "Oranges"}
+```
+]
+
+.right-column[
+Queries:
+```
+GET /scoring-test/_search
+{
+  "query": {
+    "match": {
+      "title": "apples"
+    }
+  }
+}
+
+GET /scoring-test/_search
+{
+  "query": {
+    "match": {
+      "title": "bananas"
+    }
+  }
+}
+```
+]
+
+---
+
+# Relevance: Inverse document frequency
+
+.left-column[
+Data:
+```
+DELETE /scoring-test
+
+PUT /scoring-test
+{
+  "settings": {
+    "number_of_shards": 1
+  }
+}
+
+POST /scoring-test/_bulk
+{"index":{}}
+{ "title": "Apples"}
+{"index":{}}
+{ "title": "Apples"}
+{"index":{}}
+{ "title": "Apples"}
+{"index":{}}
+{ "title": "Bananas"}
+{"index":{}}
+{ "title": "Oranges"}
+{"index":{}}
+{ "title": "Oranges"}
+```
+]
+
+.right-column[
+Query:
+```
+GET /scoring-test/_search
+{
+  "query": {
+    "match": {
+      "title": "apples bananas oranges"
+    }
+  }
+}
+```
+]
+
+---
+
+# Relevance: Field length normalisation
+
+.left-column[
+Data:
+```
+DELETE /scoring-test
+
+PUT /scoring-test
+{
+  "settings": {
+    "number_of_shards": 1
+  }
+}
+
+POST /scoring-test/_bulk
+{"index":{}}
+{ "title": "The day I ate the Apples"}
+{"index":{}}
+{ "title": "Apples & Bananas"}
+```
+]
+
+.right-column[
+Query:
+```
+GET /scoring-test/_search
+{
+  "query": {
+    "match": {
+      "title": "Apples"
+    }
+  }
+}
+```
+]
+
+---
+
+# Relevance: Percentage of the query terms that match
+
+.left-column[
+Data:
+```
+DELETE /scoring-test
+
+PUT /scoring-test
+{
+  "settings": {
+    "number_of_shards": 1
+  }
+}
+
+POST /scoring-test/_bulk
+{"index":{}}
+{ "title": "Apples Oranges"}
+{"index":{}}
+{ "title": "Apples Bananas"}
+{"index":{}}
+{ "title": "Bananas Oranges"}
+```
+]
+
+.right-column[
+Query:
+```
+GET /scoring-test/_search
+{
+  "query": {
+    "match": {
+      "title": "Apples Bananas"
+    }
+  }
+}
+```
+]
+
+---
+
+# Phrase-match queries
+
+- Analyses the requested value
+- Calculates scores
+- Does not support fuzzyness
+- By default uses the analyzer specified in the mappings
+
+
+.footnote[[Phrase-match query](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query-phrase.html)]
+---
+
+# Phrase-match queries (Exercises)
+
+### Find only movies that contain the phrase 'young man' (in that order)
+
+
+### What happens if the analyzer removes the stopwords? Would `match_phrase` still work?
+---
+
+# Bool queries (query composition)
+
+Combine the results and scores of multiple queries
+
+Possible contexts:
+  - `must`: The clause must appear in matching documents and will contribute to the score.
+  - `must_not` & `filter`: Executed as filters, only matching documents will be returned and no scores are calculated.
+  - `should`: The document "should" match the clause
+    - If it is in a context that has `must` or `filter` it will be used to influence the score, not to filter. Documents might be returned even if they do not match any of the `should` clauses
+    - If it is by itself, will behave as an *OR*; documents must match at least one of the `should` clauses
+
+.footnote[[Bool queries](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html)]
+---
+
+# Bool queries (Example)
+
+.left-column[
+Should will act filter:
+  ```
+  GET movies/_search
+  {
+    "query": {
+      "bool": {
+        "should": {
+          "match": {
+            "title": "thor"
+          }
+        }
+      }
+    }
+  }
+  ```
+]
+
+.right-column[
+Should will influence the score:
+  ```
+  GET movies/_search
+  {
+    "query": {
+      "bool": {
+        "must": {
+          "match": {
+            "title": "thor"
+          }
+        },
+        "should": {
+          "match_phrase": {
+            "title": "Dark World"
+          }
+        },
+        "must_not": {
+          "match": {
+            "title": "ragnarok"
+          }
+        }
+      }
+    }
+  }
+  ```
+]
+---
+
+# Bool queries (Exercises)
+
+### Find movies that contain 'comedy' and do NOT 'action' in the *genres*
+
+### To the previous query, add a clause to filter AND rank by the relevance of 'life' in the *overview* field
+HINT: Look at ` must`
+
+### Find ALL the 'comedy' movies and boost those that are about 'christmas'
+---
+class: center, middle
+
+# End
+Join [#sig-search](#24) to continue the fun
+    </textarea>
+    <script src="https://remarkjs.com/downloads/remark-latest.min.js">
+    </script>
+    <script>
+      var slideshow = remark.create({
+        highlightStyle: 'monokai',
+        highlightLanguage: 'remark',
+      });
+    </script>
+  </body>
+</html>

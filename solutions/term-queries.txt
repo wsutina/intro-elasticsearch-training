@@ -1,0 +1,25 @@
+# Find movies that contain 'batman' in the *overview*
+
+GET movies/_search
+{
+  "query": {
+    "term": {
+      "overview": "batman"
+    }
+  }
+}
+
+# Find movies that contain 'batman' OR 'thor' in the *overview*
+
+GET movies/_search
+{
+  "query": {
+    "terms": {
+      "overview": ["batman", "thor"]
+    }
+  }
+}
+
+# Now only 'Batman' (note the uppercase), can you guess why no movies are returned?
+
+'Batman' does not match any documents using a term query beacuse the *overview* field is analyzed using the [standard analyzer](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-standard-analyzer.html), causing the text to be added to the inverted indexed in the lowercase form.

@@ -1,0 +1,33 @@
+# Create an index with analyzer
+
+DELETE analyzer-test
+PUT /analyzer-test
+{
+  "mappings": {
+    "properties": {
+      "title": {
+        "type": "text",
+        "analyzer": "english"
+      }
+    }
+  }
+}
+
+# Index Sample document:
+
+PUT analyzer-test/_doc/1
+{
+  "title": "Bob's Burgers!!"
+}
+
+# Query:
+
+GET analyzer-test/_search
+{
+  "query": {
+    "match": {
+      "title": "bobs burgers"
+    }
+  }
+}
+

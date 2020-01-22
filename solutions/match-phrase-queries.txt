@@ -1,0 +1,55 @@
+# Find only movies that contain the phrase 'young man' (in that order)
+
+GET movies/_search
+{
+  "query": {
+    "match_phrase": {
+      "overview": "young man"
+    }
+  }
+}
+
+# What happens if the analyzer removes the stopwords? Would `match_phrase` still work?
+DELETE test
+
+PUT test
+{
+  "mappings": {
+    "show": {
+      "properties": {
+        "title": {
+          "type": "text",
+          "analyzer": "english"
+        }
+      }
+    }
+  }
+}
+
+PUT test/show/1
+{
+  "title": "The car is the money"
+}
+
+GET test/_search
+{
+  "query": {
+    "match_phrase": {
+      "title": "The car the is money"
+    }
+  }
+}
+
+The document will still be returned. Compare the results using test/_analyze
+
+# Find movies that contains 'earth' either in the title or overview
+
+GET movies/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "earth",
+      "fields": ["title", "overview"]
+    }
+  }
+}

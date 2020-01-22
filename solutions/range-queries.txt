@@ -1,0 +1,13 @@
+# Find movies with *release_date* between 2016-01-01 and 2016-12-01
+
+GET movies/_search
+{
+  "query": {
+    "range": {
+      "release_date": {
+        "gt": "2016-01-01",
+        "lt": "2016-12-01"
+      }
+    }
+  }
+}
