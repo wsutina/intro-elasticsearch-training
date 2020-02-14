@@ -15,18 +15,16 @@ DELETE test
 PUT test
 {
   "mappings": {
-    "show": {
-      "properties": {
-        "title": {
-          "type": "text",
-          "analyzer": "english"
-        }
+    "properties": {
+      "title": {
+        "type": "text",
+        "analyzer": "english"
       }
     }
   }
 }
 
-PUT test/show/1
+PUT test/_doc/1
 {
   "title": "The car is the money"
 }
