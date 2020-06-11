@@ -82,7 +82,7 @@ https://github.com/wsutina/intro-elasticsearch-training
 ```
 
 
-Join **#elasticsearch-intro**
+Join **#elasticsearch-intro-23-june**
 
 ---
 
@@ -291,7 +291,8 @@ class: center, middle
 
 # Range queries (Exercises)
 
-### Find movies with *release_date* between `2016-01-01` and `2016-12-01`
+### Find movies with **release_date** between `2016-01-01` and `2016-12-01`
+
 ---
 
 # Term queries
@@ -336,9 +337,9 @@ Query for documents that contain the word `beer`:
 # Term queries (Exercises)
 
 
-### Find movies that contain 'batman' in the *overview*
-### Find movies that contain 'batman' OR 'thor' in the *overview*
-### Now only 'Batman' (note the uppercase), can you guess why no movies are returned?
+### 1. Find movies that contain 'batman' in the **overview**
+### 2. Find movies that contain 'batman' OR 'thor' in the **overview**
+### 3. Now only 'Batman' (note the uppercase), can you guess why no movies are returned?
 
 
 ---
@@ -375,7 +376,7 @@ PUT /some-index
 ---
 
 # Analyzers (Exercises)
-Try the 'standard', 'whitespace'and 'english' analyzers with:
+1. Try the 'standard', 'whitespace'and 'english' analyzers with:
 ```
 GET /_analyze
 {
@@ -384,8 +385,7 @@ GET /_analyze
 }
 ```
 
-Create an analyzer so that the following query returns the sample document
-
+2. Create an analyzer so that the following query returns the sample document
 .left-column[
   Query:
 
@@ -444,10 +444,10 @@ GET movies/_search
 
 # Match queries (Exercises)
 
-### Find movies with 'young' AND  'man' in the overview
+### 1. Find movies with 'young' AND  'man' in the **overview**
 Hint: use `operator` field
 
-### Add fuzziness so 'young mam' returns the same results
+### 2. Add fuzziness so 'young mam' returns the same results
 ---
 
 # Relevance
@@ -654,10 +654,9 @@ GET /scoring-test/_search
 
 # Phrase-match queries (Exercises)
 
-### Find only movies that contain the phrase 'young man' (in that order)
+### 1. Find only movies that contain the phrase 'young man' (in that order)
+### 2. What happens if the analyzer removes the stopwords? Would `match_phrase` still work?
 
-
-### What happens if the analyzer removes the stopwords? Would `match_phrase` still work?
 ---
 
 # Bool queries (query composition)
@@ -725,12 +724,13 @@ Should will influence the score:
 
 # Bool queries (Exercises)
 
-### Find movies that contain 'comedy' and do NOT 'action' in the *genres*
+### 1. Find movies that contain 'comedy' and do NOT 'action' in the **genres**
 
-### To the previous query, add a clause to filter AND rank by the relevance of 'life' in the *overview* field
+### 2. To the previous query, add a clause to filter AND rank by the relevance of 'life' in the **overview** field
 HINT: Look at ` must`
 
-### Find ALL the 'comedy' movies and boost those that are about 'christmas'
+### 3. Find ALL the 'comedy' movies and boost those that are about 'christmas'
+
 ---
 class: center, middle
 
@@ -741,8 +741,8 @@ Join [#sig-search](#24) to continue the fun
     </script>
     <script>
       var slideshow = remark.create({
-        highlightStyle: 'monokai',
-        highlightLanguage: 'remark',
+        highlightStyle: 'tomorrow-night',
+        highlightLanguage: 'json',
       });
     </script>
   </body>
